@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.firefox.options import Options
@@ -14,6 +15,11 @@ class MySeleniumTests(StaticLiveServerTestCase):
         opts = Options()
         cls.selenium = WebDriver(options=opts)
         cls.selenium.implicitly_wait(5)
+	# creem superusuari
+        user = User.objects.create_user("test", "test@test.com", "test123")
+        user.is_superuser = False
+        user.is_staff = True
+        user.save()
  
     @classmethod
     def tearDownClass(cls):
@@ -31,11 +37,24 @@ class MySeleniumTests(StaticLiveServerTestCase):
  
         # introduïm dades de login i cliquem el botó "Log in" per entrar
         username_input = self.selenium.find_element(By.NAME,"username")
-        username_input.send_keys('isard')
+        username_input.send_keys('test')
         password_input = self.selenium.find_element(By.NAME,"password")
-        password_input.send_keys('pirineus')
+        password_input.send_keys('test123')
         self.selenium.find_element(By.XPATH,'//input[@value="Log in"]').click()
  
         # testejem que hem entrat a l'admin panel comprovant el títol de la pàgina
         self.assertEqual( self.selenium.title , "Site administration | Django site admin" )
-# Create your tests here.
+        self.selenium.get(f'{self.live_server_url}/admin/password_change')
+        old_password = self.selenium.find_element(By.ID, "id_old_password")
+        old_password.send_keys("test123")
+        new_password_input1 = self.selenium.find_element(By.ID, "id_new_password1")
+        new_password_input2 = self.selenium.find_element(By.ID, "id_new_password2")
+        new_password_input1.send_keys("123")
+        new_password_input2.send_keys("123")
+        self.selenium.find_element(By.XPATH, '//input[@type="submit" and @value="Change my password"]').click()
+        errors = self.selenium.find_elements(By.CLASS_NAME, "errorlist")
+
+        error_texts = [e.text for e in errors]
+        for t in error_texts:
+           print(t)
+# Create your tests here
