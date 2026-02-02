@@ -52,9 +52,8 @@ class MySeleniumTests(StaticLiveServerTestCase):
         new_password_input1.send_keys("123")
         new_password_input2.send_keys("123")
         self.selenium.find_element(By.XPATH, '//input[@type="submit" and @value="Change my password"]').click()
-        errors = self.selenium.find_elements(By.CLASS_NAME, "errorlist")
-
-        error_texts = [e.text for e in errors]
-        for t in error_texts:
-           print(t)
+        errors = self.selenium.find_element(By.CLASS_NAME, "errorlist")
+        lis = errors.find_elements(By.TAG_NAME, "li")
+        self.assertGreaterEqual(len(lis), 3)
+        print("Len: ", len(lis))
 # Create your tests here
